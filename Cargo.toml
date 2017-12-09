@@ -1,0 +1,8 @@
+[package]
+name = "dictless-desktop"
+version = "0.1.0"
+authors = ["Nick Voloshyn <akavolkol@gmail.com>"]
+
+[dependencies]
+gtk = "0.3.0"
+glib = "0.4.0"
