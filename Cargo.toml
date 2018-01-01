@@ -5,10 +5,7 @@ authors = ["Nick Voloshyn <akavolkol@gmail.com>"]
 
 [dependencies]
 gtk = { version = "0.3.0", features = ["v3_22"] }
-glib = "0.4.0"
+gdk="0.7.0"
 futures = "0.1"
 hyper = "0.11"
 tokio-core = "0.1"
-
-#[features]
-#gtk_3_22 = ["gtk/v3_22"]

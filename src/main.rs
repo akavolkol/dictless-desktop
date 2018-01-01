@@ -1,50 +1,17 @@
-extern crate gtk;
-extern crate glib;
 extern crate futures;
+extern crate gdk;
+extern crate gtk;
 extern crate hyper;
 extern crate tokio_core;
 
-use gtk::prelude::*;
-use std::io::{self, Write};
-use futures::{Future, Stream};
-use hyper::Client;
-
 mod ui;
+mod models;
+mod services;
 
 fn main() {
     init()
 }
 
-fn t() {
-    let url = "http://google.com.ua";
-
-    let url = url.parse::<hyper::Uri>().unwrap();
-    if url.scheme() != Some("http") {
-        println!("This example only works with 'http' URLs.");
-        return;
-    }
-
-    let mut core = tokio_core::reactor::Core::new().unwrap();
-    let handle = core.handle();
-    let client = Client::configure()
-        .no_proto()
-        .build(&handle);
-
-    let work = client.get(url).and_then(|res| {
-        println!("Response: {}", res.status());
-        // println!("Headers: \n{}", res.headers());
-
-        res.body().for_each(|chunk| {
-            io::stdout().write_all(&chunk).map_err(From::from)
-        })
-    }).map(|_| {
-        println!("\n\nDone.");
-    });
-
-    core.run(work).unwrap();
-}
-
 fn init() {
     ui::run();
 }
-
