@@ -1,13 +1,17 @@
-use gtk::{SearchEntry, Application, ListBox, ListBoxRow, Label};
+use gtk::{SearchEntry, Align, ListBox, ListBoxRow, Label};
 use gtk::prelude::*;
 use models::word::Word;
-use services::translation::Translator;
+// use services::translation::Translator;
+use services::api;
+use std::process;
+use std::cell::RefCell;
+use std::rc::Rc;
 
 #[derive(Clone)]
 pub struct Sidebar {
     pub search_bar: SearchEntry,
     pub items_menu: ListBox,
-    words: Vec<Word>
+    words:  Rc<RefCell<Vec<Word>>>
 }
 
 impl Sidebar {
@@ -15,56 +19,55 @@ impl Sidebar {
         let search_bar = SearchEntry::new();
         let items_menu = ListBox::new();
 
-        let fonts_archive = [
-            Word {
-                original: String::from("book"),
-                translation: String::from("книга"),
-            },
-        ];
-        for font in fonts_archive.iter() {
-            let row = FontRow::new(font.original.clone(), font.translation.clone());
-            items_menu.insert(&row.container, -1);
-        }
-
         Sidebar {
             search_bar,
             items_menu,
-            words: Vec::new()
+            words: Rc::new(RefCell::new(vec![]))
         }
     }
 
-    pub fn set_words(mut self, words: Vec<Word>) {
+    pub fn set_words(mut self, words: Rc<RefCell<Vec<Word>>>) {
         self.words = words;
+        for font in self.words.borrow().iter() {
+            let row = WordRow::new(font.original.clone(), font.translation[0].value.clone());
+            self.items_menu.insert(&row.container, -1);
+        }
+        self.items_menu.show_all();
     }
 
-    pub fn on_search<F: Fn(&String) + 'static>(&mut self, callback: F) {
+    pub fn setup_search(&mut self) {
         let inst = self.clone();
-        println!("{}", 1);
         self.search_bar.connect_search_changed(move |search| {
-            println!("{}", 2);
-            let s = inst.clone();
+            let inst1 = inst.clone();
             let buffer = search.get_buffer();
             let text = buffer.get_text();
-            s.set_words(vec![Word {
-                original: String::from("book"),
-                translation: String::from("книга"),
-            }]);
-            callback(&text);
+            if text != "" {
+                let words: Vec<Word>;
+                match api::get_words(&text) {
+                    Ok(data) => {
+                        words = data;
+                    },
+                    Err(why) => {
+                        eprintln!("failed to get words: {}", why);
+                        process::exit(1);
+                    }
+                };
+                inst.words.borrow_mut().append(&mut words.clone());
+                inst1.set_words( Rc::new(RefCell::new(words)));
+            }
         });
     }
 
-    pub fn on_word_selection(&mut self) {
+    pub fn on_word_selection<F: Fn(&String) + 'static>(&mut self, callback: F) {
         let inst = self.clone();
-        println!("{}", 3);
         self.items_menu.connect_row_selected(move |_, row| {
-            println!("{}", inst.words.len());
             if let Some(row) = row.as_ref() {
-                let mut translator = Translator::new("en".to_string(), "uk".to_string());
+                // let translator = Translator::new("en".to_string(), "uk".to_string());
                 let id = row.get_index() as usize;
 
-                if (inst.words.len() >= id) {
-                    let word = &inst.words[0].clone();
-                    println!("{}", translator.translate(&word.original));
+                if inst.words.borrow().len() > id {
+                    let word = &inst.words.borrow().clone()[id].clone();
+                    callback(&word.translation[0].value);
                 }
             }
         });
@@ -72,28 +75,26 @@ impl Sidebar {
 }
 
 #[derive(Clone)]
-pub struct FontRow {
+pub struct WordRow {
     pub container: ListBoxRow,
-    pub category: String,
-    pub family: String,
+    pub original: String,
+    pub translation: String,
 }
 
-impl FontRow {
-    pub fn new(category: String, family: String) -> FontRow {
-        // Create the inner label of the row that contains the family in bold.
+impl WordRow {
+    pub fn new(original: String, translation: String) -> WordRow {
         let label = Label::new("");
-        label.set_markup(&["<b>", family.as_str(), "</b>"].concat());
-        //label.set_halign(Align::Start);
+        label.set_markup(&["<b>", original.as_str(), "</b>"].concat());
+        label.set_halign(Align::Start);
         label.set_margin_top(5);
 
-        // Store the label within the list box row.
         let container = ListBoxRow::new();
         container.add(&label);
 
-        FontRow {
+        WordRow {
             container,
-            category,
-            family,
+            original,
+            translation,
         }
     }
 
@@ -103,6 +104,6 @@ impl FontRow {
 
     pub fn contains(&self, pattern: &str) -> bool {
         // TODO: do this without making any allocations.
-        self.family.to_lowercase().contains(&pattern.to_lowercase())
+        self.original.to_lowercase().contains(&pattern.to_lowercase())
     }
 }
