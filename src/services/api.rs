@@ -20,7 +20,7 @@ pub fn translate(text: &String) -> Result<TranslationResponse> {
     res
 }
 
-pub fn get_words(query: &String) -> Result<Vec<Word>> {
+pub fn get_words(query: &String) -> Result<Option<Vec<Word>>> {
     let client = Client::new();
     let res = client.get(&[ENDPOINT, "/api/words?query=", &query].join(""))
          .send()?

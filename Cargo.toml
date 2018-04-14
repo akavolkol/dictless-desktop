@@ -6,9 +6,7 @@ authors = ["Nick Voloshyn <akavolkol@gmail.com>"]
 [dependencies]
 gtk = { version = "0.3.0", features = ["v3_22"] }
 gdk="0.7.0"
-futures = "0.1"
-hyper = "0.11"
-tokio-core = "0.1"
+gio = "0.3.0"
 serde = "1.0.29"
 serde_json = "1.0"
 serde_derive = "1.0.35"

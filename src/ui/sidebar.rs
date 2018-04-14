@@ -1,4 +1,11 @@
-use gtk::{SearchEntry, Align, ListBox, ListBoxRow, Label};
+use gtk::{
+    SearchEntry,
+    Align,
+    ListBox,
+    ListBoxRow,
+    Label,
+    Builder
+};
 use gtk::prelude::*;
 use models::word::Word;
 // use services::translation::Translator;
@@ -18,6 +25,7 @@ impl Sidebar {
     pub fn new() -> Sidebar {
         let search_bar = SearchEntry::new();
         let items_menu = ListBox::new();
+        items_menu.set_border_width(5);
 
         Sidebar {
             search_bar,
@@ -28,8 +36,11 @@ impl Sidebar {
 
     pub fn set_words(mut self, words: Rc<RefCell<Vec<Word>>>) {
         self.words = words;
-        for font in self.words.borrow().iter() {
-            let row = WordRow::new(font.original.clone(), font.translation[0].value.clone());
+        for row in self.items_menu.get_children().iter() {
+            self.items_menu.remove(row);
+        }
+        for word in self.words.borrow().iter() {
+            let row = WordRow::new(word.original.clone(), word.translation[0].value.clone());
             self.items_menu.insert(&row.container, -1);
         }
         self.items_menu.show_all();
@@ -42,18 +53,24 @@ impl Sidebar {
             let buffer = search.get_buffer();
             let text = buffer.get_text();
             if text != "" {
-                let words: Vec<Word>;
+                let mut words: Vec<Word> = vec!();
                 match api::get_words(&text) {
                     Ok(data) => {
-                        words = data;
+                        if !data.is_none() {
+                            words = data.unwrap();
+                        }
                     },
                     Err(why) => {
                         eprintln!("failed to get words: {}", why);
                         process::exit(1);
                     }
                 };
-                inst.words.borrow_mut().append(&mut words.clone());
-                inst1.set_words( Rc::new(RefCell::new(words)));
+
+                // TODO: figure out how to deal with borrowing
+                inst1.words.borrow_mut().clear();
+                inst1.words.borrow_mut().append(&mut words.clone());
+                inst1.set_words( Rc::new(RefCell::new(words.clone())));
+
             }
         });
     }
@@ -64,10 +81,15 @@ impl Sidebar {
             if let Some(row) = row.as_ref() {
                 // let translator = Translator::new("en".to_string(), "uk".to_string());
                 let id = row.get_index() as usize;
-
                 if inst.words.borrow().len() > id {
                     let word = &inst.words.borrow().clone()[id].clone();
-                    callback(&word.translation[0].value);
+                    let mut text = String::from("");
+                    let mut translations = vec![];
+                    for translation in word.translation.iter() {
+                        translations.push(translation.value.as_str());
+                    }
+                    text = translations.join(", ");
+                    callback(&text);
                 }
             }
         });
@@ -87,8 +109,9 @@ impl WordRow {
         label.set_markup(&["<b>", original.as_str(), "</b>"].concat());
         label.set_halign(Align::Start);
         label.set_margin_top(5);
+        let builder = Builder::new_from_resource("/com/dictless/ui/words_list/row.xml");
+        let container: ListBoxRow = builder.get_object("row").unwrap();
 
-        let container = ListBoxRow::new();
         container.add(&label);
 
         WordRow {

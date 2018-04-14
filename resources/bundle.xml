@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+  <gresource prefix="/com/dictless">
+    <file compressed="true">ui/window.xml</file>
+    <file compressed="true">ui/content.xml</file>
+    <file compressed="true">ui/view.xml</file>
+    <file compressed="true">ui/words_list/row.xml</file>
+    <file compressed="true">icons/logo.png</file>
+  </gresource>
+</gresources>

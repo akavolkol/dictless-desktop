@@ -1,0 +1,12 @@
+.content {
+  background-color: #69568e;
+  color: #fff;
+}
+
+.words-list__row:selected {
+  background-color: #69568e;
+}
+
+.content--empty__image {
+  opacity: 1;
+}

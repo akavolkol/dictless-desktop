@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk+" version="3.20"/>
+  <object class="GtkWindow" id="app_window">
+    <property name="title">Dictless</property>
+    <property name="default_height">640</property>
+    <property name="default_width">480</property>
+    <child>
+      <object class="GtkBox" id="app_container">
+        <style>
+          <class name="container"/>
+        </style>
+      </object>
+    </child>
+  </object>
+</interface>
