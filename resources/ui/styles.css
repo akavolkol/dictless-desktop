@@ -3,10 +3,19 @@
   color: #fff;
 }
 
+.words-list__row {
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
 .words-list__row:selected {
   background-color: #69568e;
 }
 
 .content--empty__image {
   opacity: 1;
+}
+
+.translation {
+  padding: 5px;
 }

@@ -9,6 +9,12 @@
     <property name="spacing">5</property>
   </object>
 
+  <object class="GtkTextView" id="translation">
+    <style>
+      <class name="translation"/>
+    </style>
+  </object>
+
   <object class="GtkBox" id="content-empty">
     <style>
       <class name="content--empty"/>

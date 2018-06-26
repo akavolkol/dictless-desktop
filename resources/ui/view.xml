@@ -2,9 +2,9 @@
 <interface>
   <requires lib="gtk+" version="3.20"/>
   <object class="GtkBox" id="view">
-        <style>
-          <class name="view"/>
-        </style>
-        <property name="orientation">horizontal</property>
-      </object>
+    <style>
+      <class name="view"/>
+    </style>
+    <property name="orientation">horizontal</property>
+  </object>
 </interface>

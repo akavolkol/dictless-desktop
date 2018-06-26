@@ -1,7 +1,6 @@
-#[derive(Clone)]
-#[derive(Deserialize)]
+#[derive(Clone, Deserialize)]
 pub struct DetailedTranslation {
-    pub context:  Option<String>,
-    pub value:  String,
-    pub weight:  u32
+    pub context: Option<String>,
+    pub value: String,
+    pub weight: u32,
 }

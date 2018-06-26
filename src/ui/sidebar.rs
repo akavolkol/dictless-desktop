@@ -1,16 +1,7 @@
-use gtk::{
-    SearchEntry,
-    Align,
-    ListBox,
-    ListBoxRow,
-    Label,
-    Builder
-};
+use gtk::{Align, Builder, Label, ListBox, ListBoxRow, SearchEntry};
 use gtk::prelude::*;
 use models::word::Word;
-// use services::translation::Translator;
-use services::api;
-use std::process;
+use services::search;
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -18,19 +9,22 @@ use std::rc::Rc;
 pub struct Sidebar {
     pub search_bar: SearchEntry,
     pub items_menu: ListBox,
-    words:  Rc<RefCell<Vec<Word>>>
+    words: Rc<RefCell<Vec<Word>>>,
+    search_service: Rc<RefCell<search::Search>>,
 }
 
 impl Sidebar {
     pub fn new() -> Sidebar {
         let search_bar = SearchEntry::new();
         let items_menu = ListBox::new();
-        items_menu.set_border_width(5);
+        items_menu.set_border_width(0);
+        let se = search::Search::new();
 
         Sidebar {
-            search_bar,
+            search_bar: search_bar,
             items_menu,
-            words: Rc::new(RefCell::new(vec![]))
+            words: Rc::new(RefCell::new(vec![])),
+            search_service: Rc::new(RefCell::new(se)),
         }
     }
 
@@ -53,24 +47,11 @@ impl Sidebar {
             let buffer = search.get_buffer();
             let text = buffer.get_text();
             if text != "" {
-                let mut words: Vec<Word> = vec!();
-                match api::get_words(&text) {
-                    Ok(data) => {
-                        if !data.is_none() {
-                            words = data.unwrap();
-                        }
-                    },
-                    Err(why) => {
-                        eprintln!("failed to get words: {}", why);
-                        process::exit(1);
-                    }
-                };
-
-                // TODO: figure out how to deal with borrowing
+                let words: Vec<Word>;
+                words = inst1.search_service.borrow_mut().search_words(&text);
                 inst1.words.borrow_mut().clear();
                 inst1.words.borrow_mut().append(&mut words.clone());
-                inst1.set_words( Rc::new(RefCell::new(words.clone())));
-
+                inst1.set_words(Rc::new(RefCell::new(words.clone())));
             }
         });
     }
@@ -79,17 +60,14 @@ impl Sidebar {
         let inst = self.clone();
         self.items_menu.connect_row_selected(move |_, row| {
             if let Some(row) = row.as_ref() {
-                // let translator = Translator::new("en".to_string(), "uk".to_string());
                 let id = row.get_index() as usize;
                 if inst.words.borrow().len() > id {
                     let word = &inst.words.borrow().clone()[id].clone();
-                    let mut text = String::from("");
                     let mut translations = vec![];
                     for translation in word.translation.iter() {
                         translations.push(translation.value.as_str());
                     }
-                    text = translations.join(", ");
-                    callback(&text);
+                    callback(&translations.join(", "));
                 }
             }
         });
@@ -119,14 +97,5 @@ impl WordRow {
             original,
             translation,
         }
-    }
-
-    pub fn set_visibility(&self, visibility: bool) {
-        self.container.set_visible(visibility);
-    }
-
-    pub fn contains(&self, pattern: &str) -> bool {
-        // TODO: do this without making any allocations.
-        self.original.to_lowercase().contains(&pattern.to_lowercase())
     }
 }
