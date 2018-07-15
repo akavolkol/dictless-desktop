@@ -2,15 +2,14 @@ extern crate gtk;
 
 use ui::sidebar::Sidebar;
 use ui::window;
-use gio;
 use gio::ApplicationFlags;
-use gio::{resources_register, Resource};
+use gio::{resources_register, Error as GioError, File, Resource};
 use std::error::Error;
-use std::env;
 use gtk::prelude::*;
-use gtk::{AboutDialog, Box, Builder, Label, MenuBar, MenuItem, Orientation, ScrolledWindow,
+use gtk::{AboutDialog, Box, Builder, Image, Label, MenuBar, MenuItem, Orientation, ScrolledWindow,
           Separator, Stack, TextBuffer, TextView, Window};
 use gdk::Screen;
+use utils::resources;
 
 pub struct App {
     pub window: Window,
@@ -20,16 +19,10 @@ pub fn new() -> App {
     if gtk::init().is_err() {
         println!("Failed to initialize GTK.");
     }
-    let mut path = env::current_exe().unwrap();
-    path.pop();
-    path.pop();
-    path.pop();
-    match Resource::load(format!(
-        "{}/resources/bundle.gresource",
-        path.to_str().unwrap()
-    )) {
+    let path = resources::path();
+    match Resource::load(format!("{}/bundle.gresource", path.to_str().unwrap())) {
         Ok(resource) => resources_register(&resource),
-        Err(error) => println!("{:?}", gio::Error::description(&error)),
+        Err(error) => println!("{:?}", GioError::description(&error)),
     }
 
     gtk::Application::new("com.dictless", ApplicationFlags::empty())
@@ -38,7 +31,7 @@ pub fn new() -> App {
     let screen = Screen::get_default().unwrap();
     let provider = gtk::CssProvider::new();
 
-    let css_path = format!("{}/resources/ui/styles.css", path.to_str().unwrap());
+    let css_path = format!("{}/ui/styles.css", path.to_str().unwrap());
     provider.load_from_path(&*css_path).unwrap();
 
     gtk::StyleContext::add_provider_for_screen(
@@ -55,6 +48,8 @@ pub fn new() -> App {
     let content: Box = builder.get_object("content").unwrap();
 
     let content_empty: Box = builder.get_object("content-empty").unwrap();
+    let content_image: Image = builder.get_object("content-image").unwrap();
+    content_image.set_from_resource("/com/dictless/icons/logo.png");
     let stack = Stack::new();
     let content_text = TextBuffer::new(None);
     let content_view: TextView = builder.get_object("translation").unwrap();

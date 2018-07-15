@@ -10,6 +10,7 @@ extern crate serde_json;
 mod ui;
 mod models;
 mod services;
+mod utils;
 
 fn main() {
     ui::run();

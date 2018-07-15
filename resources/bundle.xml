@@ -5,6 +5,6 @@
     <file compressed="true">ui/content.xml</file>
     <file compressed="true">ui/view.xml</file>
     <file compressed="true">ui/words_list/row.xml</file>
-    <file compressed="true">icons/logo.png</file>
+    <file>icons/logo.png</file>
   </gresource>
 </gresources>

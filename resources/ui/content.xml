@@ -28,12 +28,10 @@
     <property name="orientation">vertical</property>
     <property name="spacing">12</property>
     <child>
-      <object class="GtkImage">
+      <object class="GtkImage" id="content-image">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="pixel_size">128</property>
-        <property name="file">resources/icons/logo.png</property>
-        <property name="use_fallback">True</property>
         <style>
           <class name="content--empty__image"/>
         </style>

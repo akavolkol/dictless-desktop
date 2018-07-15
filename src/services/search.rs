@@ -5,6 +5,7 @@ use models::word::Word;
 use serde_json;
 use serde_json::Error;
 use std::io::Read;
+use utils::resources;
 
 #[derive(Clone)]
 pub struct Search {
@@ -19,12 +20,10 @@ impl Search {
     }
 
     fn get_dic_offline() -> Result<Vec<Word>, Error> {
-        let mut path = env::current_exe().unwrap();
-        path.pop();
-        path.pop();
-        path.pop();
+        let mut path = resources::path();
+        path.push("dictonaries");
         let mut file =
-            File::open(format!("{}/data/uk.json", path.to_str().unwrap())).expect("file not found");
+            File::open(format!("{}/uk.json", path.to_str().unwrap())).expect("file not found");
         let mut contents = String::new();
 
         file.read_to_string(&mut contents)
